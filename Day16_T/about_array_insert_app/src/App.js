@@ -2,6 +2,7 @@ import './App.css';
 import { useRef, useState } from 'react';
 import { UserList } from './view/UserList';
 import { CreateUser } from './view/CreateUser.';
+import { EditUser } from './view/EditUser';
 
 function App() {
 	// Data 만들기
@@ -60,6 +61,61 @@ function App() {
 		nextId.current += 1;
 	}; //onCreate
 
+	const onRemove = (id) => {
+		for (let i = 0; i < users.length; i++) {
+			if (users[i].id === id) {
+				alert(users[i].username + '님이 삭제 됩니다.');
+			}
+		}
+
+		setUsers(users.filter((user) => user.id !== id));
+	};
+
+	//수정
+	const [editingId, setEditingId] = useState(null);
+	const [editInputs, setEditInputs] = useState({
+		username: '',
+		email: '',
+	});
+
+	//수정시작 함수
+	const onEdit = (id) => {
+		setEditingId(id);
+		const user = users.find((user) => user.id === id);
+		setEditInputs({
+			username: user.username,
+			email: user.email,
+		});
+	};
+
+	//수정취소 함수
+	const onCancleEdit = () => {
+		setEditingId(null);
+		setEditInputs({
+			username: '',
+			email: '',
+		});
+	};
+
+	//수정입력
+	const onEditChange = (event) => {
+		const { name, value } = event.target;
+		setEditInputs({
+			...editInputs,
+			[name]: value,
+		});
+	};
+
+	//수정완료
+	const onUpdate = (id) => {
+		setUsers(users.map((user) => (user.id === id ? { ...user, ...editInputs } : user)));
+		setEditingId(null);
+		setEditInputs({
+			username: '',
+			email: '',
+		});
+	};
+
 	return (
 		<div className='App'>
 			<h1>Read & Create</h1>
@@ -70,7 +126,15 @@ function App() {
 				onChange={onChange}
 				onCreate={onCreate}
 			></CreateUser>
-			<UserList users={users}></UserList>
+			<UserList users={users} onRemove={onRemove} onEdit={onEdit} editingId={editingId}></UserList>
+			{editingId !== null && (
+				<EditUser
+					user={editInputs}
+					onChange={onEditChange}
+					onUpdate={() => onUpdate(editingId)}
+					onCancleEdit={onCancleEdit}
+				></EditUser>
+			)}
 		</div>
 	);
 }
